@@ -101,13 +101,12 @@ static POWERSHELL_CONFIG: ShellConfig = ShellConfig {
 function goose-run { & '{goose_bin}' term run @args }
 Set-Alias -Name gr -Value goose-run -Scope Global
 
-Set-PSReadLineKeyHandler -Chord Enter -ScriptBlock {
-    $line = $null
-    [Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$line, [ref]$null)
+Set-PSReadLineOption -AddToHistoryHandler {
+    param($line)
     if ($line -notmatch '^goose term' -and $line -notmatch '^(goose-run|gr)($|\s)') {
         Start-Process -NoNewWindow -FilePath '{goose_bin}' -ArgumentList 'term', 'log', $line
     }
-    [Microsoft.PowerShell.PSConsoleReadLine]::AcceptLine()
+    return $true
 }{command_not_found_handler}"#,
     command_not_found: Some(
         r#"
