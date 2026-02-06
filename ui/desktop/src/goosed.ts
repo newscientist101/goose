@@ -142,7 +142,7 @@ export const startGoosed = async (options: StartGoosedOptions): Promise<GoosedRe
     env: processEnv,
     stdio: ['ignore', 'pipe', 'pipe'] as ['ignore', 'pipe', 'pipe'],
     windowsHide: true,
-    detached: isWindows,
+    detached: false,
     shell: false,
   };
 
@@ -165,10 +165,6 @@ export const startGoosed = async (options: StartGoosedOptions): Promise<GoosedRe
   const safeArgs = ['agent'];
 
   const goosedProcess: ChildProcess = spawn(goosedPath, safeArgs, spawnOptions);
-
-  if (isWindows && goosedProcess.unref) {
-    goosedProcess.unref();
-  }
 
   goosedProcess.stdout?.on('data', (data: Buffer) => {
     log.info(`goosed stdout for port ${port} and dir ${dir}: ${data.toString()}`);
@@ -198,7 +194,7 @@ export const startGoosed = async (options: StartGoosedOptions): Promise<GoosedRe
     try {
       if (isWindows) {
         const pid = goosedProcess.pid?.toString() || '0';
-        spawn('taskkill', ['/pid', pid, '/T', '/F'], { shell: false });
+        spawn('taskkill', ['/pid', pid, '/T', '/F'], { shell: false, windowsHide: true });
       } else {
         goosedProcess.kill?.();
       }
