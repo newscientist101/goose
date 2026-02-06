@@ -98,17 +98,17 @@ end"#,
 
 static POWERSHELL_CONFIG: ShellConfig = ShellConfig {
     script_template: r#"$env:AGENT_SESSION_ID = "{session_id}"
-function goose-run {{ & '{goose_bin}' term run @args }}
+function goose-run { & '{goose_bin}' term run @args }
 Set-Alias -Name gr -Value goose-run -Scope Global
 
-Set-PSReadLineKeyHandler -Chord Enter -ScriptBlock {{
+Set-PSReadLineKeyHandler -Chord Enter -ScriptBlock {
     $line = $null
     [Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$line, [ref]$null)
-    if ($line -notmatch '^goose term' -and $line -notmatch '^(goose-run|gr)($|\s)') {{
-        Start-Job -ScriptBlock {{ & '{goose_bin}' term log $using:line }} | Out-Null
-    }}
+    if ($line -notmatch '^goose term' -and $line -notmatch '^(goose-run|gr)($|\s)') {
+        Start-Job -ScriptBlock { & '{goose_bin}' term log $using:line } | Out-Null
+    }
     [Microsoft.PowerShell.PSConsoleReadLine]::AcceptLine()
-}}"#,
+}"#,
     command_not_found: None,
 };
 
