@@ -241,6 +241,8 @@ pub async fn execute_shell_command(
             cmd
         };
 
+        crate::subprocess::configure_command_no_window(&mut cmd);
+
         let output = cmd
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())
