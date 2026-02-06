@@ -553,7 +553,7 @@ export function setupAutoUpdater(tray?: Tray) {
     sendStatusToWindow('update-not-available', info);
   });
 
-  autoUpdater.on('error', (err) => {
+  autoUpdater.on('error', async (err) => {
     log.error('Error in auto-updater:', err);
     log.error('Auto-updater error details:', {
       message: err.message,
@@ -563,18 +563,51 @@ export function setupAutoUpdater(tray?: Tray) {
       toString: err.toString(),
     });
 
-    // Don't trigger GitHub fallback here — the callers of checkForUpdates()
-    // (startup and manual check) already handle fallback in their .catch() blocks.
-    // Doing it here too causes duplicate concurrent downloads that race and
-    // prevent the UI from transitioning to the 'ready' state.
-    const is404 =
+    // Check if this is a 404 error (missing update files) or connection error
+    if (
       err.message.includes('HttpError: 404') ||
       err.message.includes('ERR_CONNECTION_REFUSED') ||
       err.message.includes('ENOTFOUND') ||
-      err.message.includes('No published versions');
+      err.message.includes('No published versions')
+    ) {
+      log.info('Falling back to GitHub API for update check...');
+      log.info('Fallback triggered by error:', err.message);
+      isUsingGitHubFallback = true;
 
-    if (is404) {
-      log.info('Update metadata not found — GitHub fallback will be handled by the caller.');
+      try {
+        const result = await githubUpdater.checkForUpdates();
+
+        if (result.error) {
+          sendStatusToWindow('error', result.error);
+        } else if (result.updateAvailable) {
+          // Store GitHub update info
+          githubUpdateInfo = {
+            latestVersion: result.latestVersion,
+            downloadUrl: result.downloadUrl,
+            releaseUrl: result.releaseUrl,
+          };
+
+          updateAvailable = true;
+          updateTrayIcon(true);
+          sendStatusToWindow('update-available', { version: result.latestVersion });
+
+          // Auto-download for GitHub fallback (matching autoDownload behavior)
+          log.info('Auto-downloading update via GitHub fallback after error...');
+          await githubAutoDownload(result.downloadUrl!, result.latestVersion!, 'after error');
+        } else {
+          updateAvailable = false;
+          updateTrayIcon(false);
+          sendStatusToWindow('update-not-available', {
+            version: autoUpdater.currentVersion.version,
+          });
+        }
+      } catch (fallbackError) {
+        log.error('GitHub fallback also failed:', fallbackError);
+        sendStatusToWindow(
+          'error',
+          'Unable to check for updates. Please check your internet connection.'
+        );
+      }
     } else {
       sendStatusToWindow('error', err.message);
     }
