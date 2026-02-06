@@ -46,7 +46,7 @@ Restart your terminal or source the config, and that's it!
 
 ## Usage
 
-Just type `@goose` (or `@g` for short) followed by your question:
+Just type `@goose` (or `@g` for short) followed by your question. On PowerShell, use `goose-run` (or `gr` for short) instead, since `@` is reserved:
 
 ```bash
 npm install express
