@@ -1,8 +1,3 @@
-// On Windows, prevent goosed from allocating a console window when spawned
-// from the desktop app. The CLI still works because it attaches to the
-// parent's console when one exists.
-#![cfg_attr(windows, windows_subsystem = "windows")]
-
 mod commands;
 mod configuration;
 mod error;
