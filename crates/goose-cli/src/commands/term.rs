@@ -105,7 +105,7 @@ Set-PSReadLineKeyHandler -Chord Enter -ScriptBlock {
     $line = $null
     [Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$line, [ref]$null)
     if ($line -notmatch '^goose term' -and $line -notmatch '^(goose-run|gr)($|\s)') {
-        Start-Job -ScriptBlock { & '{goose_bin}' term log $using:line } | Out-Null
+        Start-Process -NoNewWindow -FilePath '{goose_bin}' -ArgumentList 'term', 'log', $line
     }
     [Microsoft.PowerShell.PSConsoleReadLine]::AcceptLine()
 }{command_not_found_handler}"#,
