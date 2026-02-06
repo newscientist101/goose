@@ -108,8 +108,21 @@ Set-PSReadLineKeyHandler -Chord Enter -ScriptBlock {
         Start-Job -ScriptBlock { & '{goose_bin}' term log $using:line } | Out-Null
     }
     [Microsoft.PowerShell.PSConsoleReadLine]::AcceptLine()
+}{command_not_found_handler}"#,
+    command_not_found: Some(
+        r#"
+
+if ($PSVersionTable.PSVersion -ge [version]'7.4') {
+    $ExecutionContext.InvokeCommand.CommandNotFoundAction = {
+        param($name, $eventArgs)
+        $eventArgs.CommandScriptBlock = {
+            Write-Host "🪿 Command '$name' not found. Asking goose..."
+            & '{goose_bin}' term run $name @args
+        }.GetNewClosure()
+        $eventArgs.StopSearch = $true
+    }
 }"#,
-    command_not_found: None,
+    ),
 };
 
 pub async fn handle_term_init(
