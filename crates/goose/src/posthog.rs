@@ -245,6 +245,11 @@ pub fn emit_error_with_context(error_type: &str, context: ErrorContext) {
         return;
     }
 
+    // Temporarily disabled - only session_started events are sent
+    let _ = (&error_type, &context);
+    return;
+
+    #[allow(unreachable_code)]
     let installation = load_or_create_installation();
     let error_type = error_type.to_string();
 
@@ -258,6 +263,10 @@ pub fn emit_custom_slash_command_used() {
         return;
     }
 
+    // Temporarily disabled - only session_started events are sent
+    return;
+
+    #[allow(unreachable_code)]
     let installation = load_or_create_installation();
 
     tokio::spawn(async move {
@@ -534,6 +543,11 @@ pub async fn emit_event(
         return Ok(());
     }
 
+    // Temporarily disabled - only session_started events are sent
+    let _ = (event_name, &mut properties);
+    return Ok(());
+
+    #[allow(unreachable_code)]
     let installation = load_or_create_installation();
     let client = posthog_rs::client(POSTHOG_API_KEY).await;
     let mut event = posthog_rs::Event::new(event_name, &installation.installation_id);
